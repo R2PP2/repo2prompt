@@ -211,20 +211,17 @@
       tokenCountEl.textContent = Math.ceil(text.length / 4).toLocaleString();
     }
 
-    // --- Выбор папки ---
-    // Клик по кнопке и по зоне открывает диалог; stopPropagation у input
-    // защищает от повторного всплытия клика обратно на dropzone.
+    /
     dropzone.addEventListener('click', () => folderInput.click());
     folderInput.addEventListener('click', (e) => e.stopPropagation());
 
     folderInput.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
-      folderInput.value = ''; // позволяет выбрать ту же папку повторно
+      folderInput.value = '';
       if (files.length) processFiles(files);
     });
 
-    // --- Drag & drop ---
-    // Не даём браузеру открывать файл, если промахнулись мимо зоны
+ 
     ['dragover', 'drop'].forEach((evt) =>
       window.addEventListener(evt, (e) => e.preventDefault())
     );
@@ -236,7 +233,7 @@
 
     dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
 
-    // readEntries отдаёт максимум ~100 записей за вызов — читаем до пустого результата
+ 
     async function readAllEntries(reader) {
       const all = [];
       while (true) {
@@ -248,7 +245,7 @@
     }
 
     async function traverseEntry(entry, path, files, ignoreList, isRoot) {
-      // Игнорируемые папки/файлы отсекаем сразу, не заходя внутрь (быстро для node_modules)
+     
       if (!isRoot && ignoreList.includes(entry.name)) return;
 
       if (entry.isFile) {
@@ -271,8 +268,7 @@
       e.preventDefault();
       dropzone.classList.remove('dragover');
 
-      // ВАЖНО: DataTransferItemList очищается после первого await,
-      // поэтому все entries собираем синхронно, до любых асинхронных операций.
+   
       const entries = Array.from(e.dataTransfer.items)
         .map((item) => (item.webkitGetAsEntry ? item.webkitGetAsEntry() : null))
         .filter(Boolean);
@@ -288,9 +284,9 @@
       else statusEl.textContent = 'No files found.';
     });
 
-    // --- Обработка файлов ---
+
     function fenceFor(text) {
-      // Забор из бэктиков длиннее любой последовательности внутри файла (важно для .md)
+   
       const runs = text.match(/`{3,}/g) || [];
       const longest = runs.reduce((m, s) => Math.max(m, s.length), 2);
       return '`'.repeat(longest + 1);
@@ -311,8 +307,7 @@
         const hasDot = file.name.includes('.');
         const ext = hasDot ? file.name.split('.').pop().toLowerCase() : '';
 
-        // slice(1): имя самой корневой папки не проверяем,
-        // иначе проект в папке "build" или "dist" полностью отфильтруется
+        
         if (segments.slice(1).some((p) => ignoreList.includes(p))) { skippedIgnored++; continue; }
         if (BINARY_EXTS.has(ext)) { skippedBinary++; continue; }
         if (file.size > MAX_FILE_SIZE) { skippedBig++; continue; }
@@ -340,16 +335,16 @@
         (skipped.length ? ` (skipped: ${skipped.join(', ')})` : '');
     }
 
-    // Если пользователь правит текст вручную — пересчитываем символы и токены
+ 
     output.addEventListener('input', () => updateStats(output.value));
 
-    // --- Копирование ---
+   
     async function copyText(text) {
       try {
         await navigator.clipboard.writeText(text);
         return true;
       } catch (err) {
-        // Фолбэк для небезопасного контекста / старых браузеров
+        
         output.focus();
         output.select();
         try { return document.execCommand('copy'); } catch (e) { return false; }
@@ -364,7 +359,7 @@
       setTimeout(() => (copyBtn.textContent = oldText), 1500);
     });
 
-    // --- Скачивание ---
+   
     downloadBtn.addEventListener('click', () => {
       if (!output.value) return;
       const blob = new Blob([output.value], { type: 'text/markdown;charset=utf-8' });
@@ -375,7 +370,7 @@
       document.body.appendChild(a);
       a.click();
       a.remove();
-      // Отзываем URL с задержкой, иначе загрузка может сорваться
+    
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
   </script>
